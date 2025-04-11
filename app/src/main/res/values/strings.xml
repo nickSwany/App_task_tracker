@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Task Tracker</string>
+    <string name="calendar">Календарь</string>
+    <string name="add">Добавить</string>
+    <string name="end">Конец</string>
+    <string name="start">Начало</string>
 </resources>

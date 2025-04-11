@@ -2,22 +2,10 @@ package com.example.tasktracker.data.db.entities
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
-import androidx.room.ForeignKey
-import androidx.room.Index
 import androidx.room.PrimaryKey
-import java.util.Locale.Category
 
 @Entity(
-    tableName = "tasks",
-    foreignKeys = [
-        ForeignKey(
-            entity = Category::class,
-            parentColumns = ["category_id"],
-            childColumns = ["category_id"],
-            onDelete = ForeignKey.CASCADE
-        )
-    ],
-    indices = [Index("category_id")]
+    tableName = "tasks"
 )
 data class TaskEntity(
     @PrimaryKey(autoGenerate = true)
@@ -25,14 +13,22 @@ data class TaskEntity(
     val id: Long,
     @ColumnInfo(name = "title")
     val title: String,
-    @ColumnInfo(name = "data")
-    val data: String,
+    @ColumnInfo(name = "description")
+    val description: String,
+    @ColumnInfo(name = "date")
+    val date: String,
     @ColumnInfo(name = "start_time")
     val startTime: String,
     @ColumnInfo(name = "duration")
     val duration: String,
-    @ColumnInfo(name = "category_id")
-    val categoryId: Long,
+    @ColumnInfo(name = "location")
+    val location: String,
+    @ColumnInfo(name = "address")
+    val address: String,
+    @ColumnInfo(name = "category_name")
+    val categoryName: String,
+    @ColumnInfo(name = "category_color")
+    val categoryColor: String,
     @ColumnInfo(name = "status")
     val status: String,
     @ColumnInfo(name = "is_completed")
