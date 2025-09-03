@@ -7,4 +7,6 @@ interface MainRepository {
      suspend fun getAllTasks() : Flow<List<Task>>
 
      suspend fun deleteTask(task: Task)
+
+     suspend fun approveTask(task: Long, isCompleted: Boolean)
 }

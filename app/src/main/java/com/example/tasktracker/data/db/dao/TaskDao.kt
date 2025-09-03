@@ -7,6 +7,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import com.example.tasktracker.data.db.entities.TaskEntity
+import com.example.tasktracker.domain.model.Task
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -25,9 +26,12 @@ interface TaskDao {
     suspend fun getTaskByData(date: String): List<TaskEntity>
 
     @Query("SELECT * FROM tasks WHERE task_id =:taskId ")
-    suspend fun getInfoById(taskId: Long): TaskEntity?
+    suspend fun getInfoById(taskId: Long): TaskEntity
 
     @Transaction
     @Query("SELECT * FROM tasks ORDER BY date, start_time")
     fun getAllTasks(): Flow<List<TaskEntity>>
+
+    @Query("UPDATE tasks SET is_completed = :isCompleted WHERE task_id = :taskId")
+    suspend fun updateIsCompleted(taskId: Long, isCompleted: Boolean)
 }

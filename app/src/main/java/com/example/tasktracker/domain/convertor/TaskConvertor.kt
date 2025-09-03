@@ -17,7 +17,6 @@ class TaskConvertor() {
             address = taskEntity.address,
             categoryName = taskEntity.categoryName,
             categoryColor = taskEntity.categoryColor,
-            status = taskEntity.status,
             isCompleted = taskEntity.isCompleted
         )
     }
@@ -34,8 +33,7 @@ class TaskConvertor() {
             address = task.address.toString(),
             categoryName = task.categoryName.toString(),
             categoryColor = task.categoryColor.toString(),
-            status = task.status.toString(),
-            isCompleted = task.isCompleted 
+            isCompleted = task.isCompleted
         )
     }
 

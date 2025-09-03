@@ -7,4 +7,6 @@ interface MainInteractor {
     suspend fun getAllTasks(): Flow<List<Task>>
 
     suspend fun deleteTask(task: Task)
+
+    suspend fun approveTask(taskId: Long, isCompleted: Boolean)
 }
