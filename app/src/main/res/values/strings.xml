@@ -4,4 +4,7 @@
     <string name="add">Добавить</string>
     <string name="end">Конец</string>
     <string name="start">Начало</string>
+    <string name="time">Время</string>
+    <string name="duration">Продолжительность</string>
+    <string name="task_title" translatable="false">Наименование задачи</string>
 </resources>
