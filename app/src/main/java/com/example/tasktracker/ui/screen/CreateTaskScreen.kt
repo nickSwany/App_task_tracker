@@ -3,6 +3,7 @@
 package com.example.tasktracker.ui.screen
 
 import android.content.Context
+import android.graphics.drawable.Icon
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -30,6 +31,7 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -38,44 +40,39 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.rememberDatePickerState
-import androidx.compose.material3.rememberTimePickerState
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.example.tasktracker.R
-import com.example.tasktracker.domain.api.repository.CreateTaskRepository
-import com.example.tasktracker.domain.model.Task
+import com.example.tasktracker.ui.ToolBar
 import com.example.tasktracker.ui.theme.Background
 import com.example.tasktracker.ui.theme.Black
 import com.example.tasktracker.ui.theme.BlueText
 import com.example.tasktracker.ui.theme.GraySwitch
+import com.example.tasktracker.ui.theme.Red
 import com.example.tasktracker.ui.theme.White
 import com.example.tasktracker.ui.theme.darkGray
-import com.example.tasktracker.ui.theme.expandedGradient
 import com.example.tasktracker.ui.theme.lightGray
 import com.example.tasktracker.ui.theme.whiteButton
 import com.example.tasktracker.ui.viewModel.CreateTaskViewModel
@@ -98,38 +95,67 @@ fun CreateTaskScreen(
     navController: NavHostController, viewModel: CreateTaskViewModel = koinViewModel()
 ) {
 
-//    var canCreateTask by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
-//    var taskTitle by remember { mutableStateOf("") }
-//    var taskDiscription by remember { mutableStateOf("") }
-    val brush = remember {
-        Brush.linearGradient(
-            colors = listOf(Color(0xFF6A88F7), Color(0xFF9C27B0))
-        )
-    }
+    val canSave by remember(viewModel.taskTitle) { derivedStateOf { viewModel.taskTitle.isNotBlank() } }
+    val sheetState = rememberModalBottomSheetState()
+    var showBottomSheet by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .background(Background)
-
     ) {
         ToolBar(navController, onDoneClick = {
             viewModel.saveTask()
             navController.popBackStack()
-        })
+        }, canSave, "Создание", 1)
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(scrollState)
         ) {
 
-            Spacer(modifier = Modifier.height(20.dp))
+
+//            Spacer(modifier = Modifier.height(24.dp))
+
+//            Text(text = "Категория")
+//            IconButton(
+//                onClick = {
+//                    showBottomSheet = true
+//                },
+//                modifier = Modifier
+//                    .background(
+//                        Black,
+//                        shape = RoundedCornerShape(16.dp)
+//                    )
+//                    .size(48.dp)
+//            ) {
+//                Image(
+//                    painter = painterResource(id = R.drawable.ic_down),
+//                    contentDescription = stringResource(R.string.add),
+//                    modifier = Modifier.size(24.dp)
+//                )
+//            } // Исправить на правельную категорию как в дизайне
+
+            if (showBottomSheet) {
+                ModalBottomSheet(
+                    onDismissRequest = {
+                        showBottomSheet = false // Закрываем BottomSheet
+                    },
+                    sheetState = sheetState,
+                    scrimColor = Black.copy(alpha = 0.6f),
+                    containerColor = Background
+                ) {
+                    SheetContent()
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
 
             TextField(
                 value = viewModel.taskTitle,
                 onValueChange = { viewModel.onTitleChange(it) },
-                textStyle = TextStyle(brush = brush),
+                textStyle = TextStyle(color = Black),
                 label = { Text("ЗАГОЛОВОК") },
                 maxLines = 2,
                 modifier = Modifier
@@ -152,7 +178,7 @@ fun CreateTaskScreen(
             TextField(
                 value = viewModel.taskDescription,
                 onValueChange = { viewModel.onDescriptionChange(it) },
-                textStyle = TextStyle(brush = brush),
+                textStyle = TextStyle(color = Black),
                 label = { Text("Описание") },
                 maxLines = 2,
                 modifier = Modifier
@@ -171,7 +197,7 @@ fun CreateTaskScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            ChooseDate()
+            ChooseDate(onDateSelectedStart = { viewModel.onSaveDate(it) })
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -179,7 +205,6 @@ fun CreateTaskScreen(
                 modifier = Modifier
                     .height(1.dp)
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp)
                     .background(lightGray)
             ) { }
 
@@ -193,72 +218,19 @@ fun CreateTaskScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
         }
-
     }
 }
 
-@Composable
-fun ToolBar(navController: NavHostController, onDoneClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(
-                expandedGradient, shape = RoundedCornerShape(
-                    topStart = 0.dp, topEnd = 0.dp, bottomStart = 32.dp, bottomEnd = 32.dp
-                )
-            )
-            .padding(top = 10.dp, bottom = 20.dp, start = 20.dp, end = 20.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        IconButton(
-            onClick = { navController.popBackStack() }, modifier = Modifier
-                .size(48.dp)
-                .background(
-                    color = whiteButton, shape = RoundedCornerShape(16.dp)
-                )
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_back),
-                contentDescription = "Back",
-                modifier = Modifier.size(24.dp)
-            )
-        }
-
-        Text(
-            "Создание",
-            color = White,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(vertical = 12.dp)
-        )
-
-        IconButton(
-            onClick = { onDoneClick() }, modifier = Modifier
-                .size(48.dp)
-                .background(
-                    color = whiteButton, shape = RoundedCornerShape(16.dp)
-                )
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_done),
-                contentDescription = "Back",
-                modifier = Modifier.size(24.dp)
-            )
-        }
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview
 @Composable
-fun ChooseDate() { // возможно нужно сделать возврат данных
+fun ChooseDate(onDateSelectedStart: (LocalDate) -> Unit) {
 
     var switchState by remember { mutableStateOf(false) }
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     var isExpanded by remember { mutableStateOf(false) }
-//    var isExpandedMonth by remember { mutableStateOf(false) }
-//    var expanded by remember { mutableStateOf(false) }
     val datePickerState = rememberDatePickerState()
+    val dateFormatter = remember { DateTimeFormatter.ofPattern("d MMMM yyyy", Locale("ru")) }
 
 
     Column(
@@ -269,9 +241,7 @@ fun ChooseDate() { // возможно нужно сделать возврат 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable {
-                    isExpanded = !isExpanded
-                },
+                .clickable { isExpanded = !isExpanded },
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
@@ -283,7 +253,7 @@ fun ChooseDate() { // возможно нужно сделать возврат 
             ) {
                 Image(
                     painter = painterResource(R.drawable.ic_calendar),
-                    contentDescription = "Calendar",
+                    contentDescription = null,
                     modifier = Modifier.size(24.dp)
                 )
             }
@@ -299,7 +269,7 @@ fun ChooseDate() { // возможно нужно сделать возврат 
                 )
 
                 Text(
-                    selectedDate.format(DateTimeFormatter.ofPattern("d MMMM yyyy", Locale("ru"))),
+                    selectedDate.format(dateFormatter),
                     color = BlueText,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Light
@@ -315,7 +285,7 @@ fun ChooseDate() { // возможно нужно сделать возврат 
                     checkedTrackColor = BlueText,
                     uncheckedThumbColor = Color.White,
                     uncheckedTrackColor = GraySwitch,
-                    uncheckedBorderColor = Color.Transparent, // Убираем контур в `false`
+                    uncheckedBorderColor = Color.Transparent,
                 )
             )
         }
@@ -327,6 +297,7 @@ fun ChooseDate() { // возможно нужно сделать возврат 
                     if (selectedMillis != null) {
                         selectedDate = Instant.ofEpochMilli(selectedMillis)
                             .atZone(ZoneId.systemDefault()).toLocalDate()
+                        if (switchState) onDateSelectedStart(selectedDate)
                     }
                     isExpanded = false
                 }) { Text("OK") }
@@ -339,7 +310,7 @@ fun ChooseDate() { // возможно нужно сделать возврат 
                         onPrimary = Color.Transparent,
                         background = lightGray,
                         surface = lightGray,
-                        onSurface = White // Проверить при выборе даты цвет
+                        onSurface = White
                     )
                 ) {
                     DatePicker(state = datePickerState)
@@ -347,6 +318,11 @@ fun ChooseDate() { // возможно нужно сделать возврат 
                 }
             }
         }
+
+        LaunchedEffect(switchState, selectedDate) {
+            if (switchState) onDateSelectedStart(selectedDate) else onDateSelectedStart(LocalDate.now())
+        }
+
     }
 }
 
@@ -360,8 +336,7 @@ fun ChooseTime(
     var isExpandedTimeEnd by remember { mutableStateOf(false) }
     var selectedTimeStart by remember { mutableStateOf(LocalTime.now()) }
     var selectedTimeEnd by remember { mutableStateOf(LocalTime.now().plusHours(1)) }
-
-//    var timeStart = selectedTimeStart.format(DateTimeFormatter.ofPattern("HH:mm", Locale("ru")))
+    val timeFormatter = remember { DateTimeFormatter.ofPattern("HH:mm", Locale("ru")) }
 
     Column(
         Modifier
@@ -369,61 +344,63 @@ fun ChooseTime(
             .padding(start = 20.dp, end = 20.dp)
     ) {
 
-        TimeSelectionRow(icon = R.drawable.ic_time,
+        TimeSelectionRow(
+            icon = R.drawable.ic_time,
             label = stringResource(R.string.start),
-            time = selectedTimeStart.format(DateTimeFormatter.ofPattern("HH:mm", Locale("ru"))),
+            time = selectedTimeStart.format(timeFormatter),
             switchState = switchStateStart,
-            onSwitchChange = {
-                switchStateStart = it
-                if (switchStateStart) onTimeSelectedStart(selectedTimeStart)
-            },
-            onClick = {
-                isExpandedTimeStart = !isExpandedTimeStart
-            })
+            onSwitchChange = { switchStateStart = it },
+            onClick = { isExpandedTimeStart = !isExpandedTimeStart })
 
         if (isExpandedTimeStart) {
             Spacer(modifier = Modifier.height(16.dp))
-            CustomTimePicker { hour, minute ->
+            CustomTimePicker(
+                initialHour = selectedTimeStart.hour,
+                initialMinute = selectedTimeStart.minute
+            ) { hour, minute ->
                 selectedTimeStart = LocalTime.of(hour, minute)
             }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        TimeSelectionRow(icon = R.drawable.ic_time,
+        TimeSelectionRow(
+            icon = R.drawable.ic_time,
             label = stringResource(R.string.end),
-            time = selectedTimeEnd.format(DateTimeFormatter.ofPattern("HH:mm", Locale("ru"))),
+            time = selectedTimeEnd.format(timeFormatter),
             switchState = switchStateEnd,
-            onSwitchChange = {
-                switchStateEnd = it
-                if (switchStateEnd) {
-                    val durationMinutes =
-                        ChronoUnit.MINUTES.between(selectedTimeStart, selectedTimeEnd)
-                    val hours = durationMinutes / 60
-                    val minutes = durationMinutes % 60
-
-                    val durationText = when {
-                        hours > 0 && minutes > 0 -> "$hours ч $minutes мин"
-                        hours > 0 -> "$hours ч"
-                        else -> "$minutes мин"
-                    }
-
-                    onDurationCalculated(durationText)
-                }
-            },
-            onClick = {
-                isExpandedTimeEnd = !isExpandedTimeEnd
-            })
+            onSwitchChange = { switchStateEnd = it },
+            onClick = { isExpandedTimeEnd = !isExpandedTimeEnd })
 
         if (isExpandedTimeEnd) {
             Spacer(modifier = Modifier.height(16.dp))
-            CustomTimePicker { hour, minute ->
+            CustomTimePicker(
+                initialHour = selectedTimeEnd.hour,
+                initialMinute = selectedTimeEnd.minute
+            ) { hour, minute ->
                 selectedTimeEnd = LocalTime.of(hour, minute)
             }
         }
     }
-}
+    LaunchedEffect(switchStateStart, selectedTimeStart) {
+        if (switchStateStart) onTimeSelectedStart(selectedTimeStart)
+    }
 
+    LaunchedEffect(switchStateEnd, selectedTimeStart, selectedTimeEnd) {
+        if (switchStateEnd) {
+            var durationMinutes = ChronoUnit.MINUTES.between(selectedTimeStart, selectedTimeEnd)
+            if (durationMinutes < 0) durationMinutes = 0
+            val hours = durationMinutes / 60
+            val minutes = durationMinutes % 60
+            val durationText = when {
+                hours > 0 && minutes > 0 -> "$hours ч $minutes мин"
+                hours > 0 -> "$hours ч"
+                else -> "$minutes мин"
+            }
+            onDurationCalculated(durationText)
+        }
+    }
+}
 
 @Composable
 fun TimeSelectionRow(
@@ -449,7 +426,7 @@ fun TimeSelectionRow(
         ) {
             Image(
                 painter = painterResource(icon),
-                contentDescription = label,
+                contentDescription = null,
                 modifier = Modifier.size(24.dp)
             )
         }
@@ -480,19 +457,6 @@ fun TimeSelectionRow(
     }
 }
 
-@Preview
-@Composable
-fun CreateTaskScreenPreview() {
-    val fakeViewModel = object : CreateTaskViewModel(object : CreateTaskRepository {
-        override suspend fun createTask(task: Task) {
-            // Пустая заглушка, чтобы не падало
-        }
-    }) {}
-
-    CreateTaskScreen(navController = rememberNavController(), viewModel = fakeViewModel)
-}
-
-
 @Composable
 internal fun TimeColumnPicker(
     initialValue: Int,
@@ -502,16 +466,23 @@ internal fun TimeColumnPicker(
     isHoursColumn: Boolean
 ) {
     val context = LocalContext.current
-    val listState =
-        rememberLazyListState(initialFirstVisibleItemIndex = initialValue / (if (isHoursColumn) 1 else 5))
-
-    val list by remember {
+    val pad = countOfVisibleItemsInPicker / 2
+    val values by remember(range) { mutableStateOf(range.map { it.getTimeDefaultStr() }) }
+    val repeatBlocks = 200
+    val list by remember(values) {
         mutableStateOf(mutableListOf<String>().apply {
-            (1..(countOfVisibleItemsInPicker / 2)).forEach { _ -> add("") }
-            for (i in range) add(i.getTimeDefaultStr())
-            (1..(countOfVisibleItemsInPicker / 2)).forEach { _ -> add("") }
+            repeat(pad) { add("") }
+            repeat(repeatBlocks) { values.forEach { add(it) } }
+            repeat(pad) { add("") }
         })
     }
+    val indexInValues = remember(initialValue, isHoursColumn) {
+        if (isHoursColumn) initialValue else initialValue / 5
+    }
+    val centerBlock = repeatBlocks / 2
+    val initialFirstVisible =
+        remember(indexInValues) { pad + centerBlock * values.size + indexInValues - pad }
+    val listState = rememberLazyListState(initialFirstVisibleItemIndex = initialFirstVisible)
 
     var selectedValue by remember { mutableIntStateOf(initialValue) }
 
@@ -522,15 +493,25 @@ internal fun TimeColumnPicker(
         ) {
             listState.animateScrollToItem(listState.itemForScrollTo(context))
         }
+        val minIndex = pad + values.size
+        val maxIndex = pad + (repeatBlocks - 1) * values.size
+        if (!listState.isScrollInProgress) {
+            val current = listState.firstVisibleItemIndex
+            if (current < minIndex || current > maxIndex) {
+                val normalized = ((current - pad) % values.size + values.size) % values.size
+                val target = pad + centerBlock * values.size + normalized
+                listState.scrollToItem(target)
+            }
+        }
     }
 
     LaunchedEffect(listState.firstVisibleItemScrollOffset) {
-        val newValue =
-            list[listState.itemForScrollTo(context) + countOfVisibleItemsInPicker / 2].toIntOrNull()
+        val centerIndex = listState.itemForScrollTo(context) + pad
+        val raw = list[centerIndex]
+        val newValue = raw.toIntOrNull()
         if (newValue != null && newValue != selectedValue) {
             onValueChange(newValue)
-            selectedValue =
-                newValue // тут возможно будет ошибка, если выставлять одно и тоже время на часы, но другие минуты
+            selectedValue = newValue
         }
     }
 
@@ -540,7 +521,7 @@ internal fun TimeColumnPicker(
             .padding(horizontal = 20.dp),
         contentAlignment = Alignment.Center
     ) {
-        Border(itemHeight = itemHeight.dp, color = Black) //можно кастомить
+        Border(itemHeight = itemHeight.dp, color = Black)
 
         LazyColumn(
             state = listState,
@@ -630,33 +611,11 @@ private fun calculateAlpha(index: Int, listState: LazyListState): Float {
 
 @Composable
 internal fun Border(itemHeight: Dp, color: Color) {
-    val width = 2.dp
-    val strokeWidthPx = with(LocalDensity.current) { width.toPx() }
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(itemHeight)
             .background(darkGray, shape = RoundedCornerShape(10.dp))
-//            .drawBehind {
-//                drawLine(
-//                    color = color,
-//                    strokeWidth = strokeWidthPx,
-//                    start = Offset(0f, 0f),
-//                    end = Offset(
-//                        size.width, 0f
-//                    )
-//                )
-//
-//                drawLine(
-//                    color = color,
-//                    strokeWidth = strokeWidthPx,
-//                    start = Offset(0f, size.height),
-//                    end = Offset(
-//                        size.width, size.height
-//                    )
-//                )
-//            }
     ) { }
 }
 
@@ -687,7 +646,7 @@ fun CustomTimePicker(
             ":",
             modifier = Modifier
                 .align(Alignment.CenterVertically)
-                .background(darkGray, shape = RoundedCornerShape(10.dp))
+                .background(color = Color.Transparent, shape = RoundedCornerShape(10.dp))
         )
 
         TimeColumnPicker(
@@ -702,4 +661,15 @@ fun CustomTimePicker(
     LaunchedEffect(selectedHour, selectedMinute) {
         onTimeSelected(selectedHour, selectedMinute)
     }
+}
+
+@Composable
+fun SheetContent() {
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .background(Background)) {
+        Text(text = "SheetContent")
+    }
+    // доделать bottomSheet
+
 }

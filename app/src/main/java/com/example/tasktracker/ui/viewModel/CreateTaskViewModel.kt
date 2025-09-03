@@ -8,9 +8,10 @@ import androidx.lifecycle.viewModelScope
 import com.example.tasktracker.domain.api.repository.CreateTaskRepository
 import com.example.tasktracker.domain.model.Task
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import java.time.LocalTime
 
-open class CreateTaskViewModel( // убрать потом open
+class CreateTaskViewModel( // убрать потом open
     private val createTaskRepository: CreateTaskRepository
 ) : ViewModel() {
 
@@ -18,6 +19,8 @@ open class CreateTaskViewModel( // убрать потом open
     var taskDescription by mutableStateOf("")
     private var taskStartTime by mutableStateOf<LocalTime?>(null)
     private var taskDuration by mutableStateOf<String?>(null)
+    private var taskDate by mutableStateOf<LocalDate?>(null)
+
 
     fun onTitleChange(newTitle: String) {
         taskTitle = newTitle
@@ -35,20 +38,23 @@ open class CreateTaskViewModel( // убрать потом open
         taskDuration = newDuration
     }
 
+    fun onSaveDate(newDate: LocalDate) {
+        taskDate = newDate
+    }
+
     fun saveTask() {
         viewModelScope.launch {
             val task = Task(
-                id = System.currentTimeMillis(), // Генерируем уникальный ID
+                id = System.currentTimeMillis(),
                 title = taskTitle,
                 description = taskDescription,
-                date = null, // Пока не используем дату
+                date = taskDate.toString(),
                 startTime = taskStartTime.toString(),
                 duration = taskDuration.toString(),
                 location = null,
                 address = null,
                 categoryName = null,
                 categoryColor = null,
-                status = "Запланировано",
                 isCompleted = false
             )
             createTaskRepository.createTask(task)
