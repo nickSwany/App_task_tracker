@@ -3,7 +3,6 @@
 package com.example.tasktracker.ui.screen
 
 import android.content.Context
-import android.graphics.drawable.Icon
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -24,6 +23,8 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DatePicker
@@ -32,6 +33,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -51,15 +54,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -70,11 +74,9 @@ import com.example.tasktracker.ui.theme.Background
 import com.example.tasktracker.ui.theme.Black
 import com.example.tasktracker.ui.theme.BlueText
 import com.example.tasktracker.ui.theme.GraySwitch
-import com.example.tasktracker.ui.theme.Red
 import com.example.tasktracker.ui.theme.White
 import com.example.tasktracker.ui.theme.darkGray
 import com.example.tasktracker.ui.theme.lightGray
-import com.example.tasktracker.ui.theme.whiteButton
 import com.example.tasktracker.ui.viewModel.CreateTaskViewModel
 import org.koin.androidx.compose.koinViewModel
 import java.time.Instant
@@ -116,26 +118,26 @@ fun CreateTaskScreen(
         ) {
 
 
-//            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-//            Text(text = "Категория")
-//            IconButton(
-//                onClick = {
-//                    showBottomSheet = true
-//                },
-//                modifier = Modifier
-//                    .background(
-//                        Black,
-//                        shape = RoundedCornerShape(16.dp)
-//                    )
-//                    .size(48.dp)
-//            ) {
-//                Image(
-//                    painter = painterResource(id = R.drawable.ic_down),
-//                    contentDescription = stringResource(R.string.add),
-//                    modifier = Modifier.size(24.dp)
-//                )
-//            } // Исправить на правельную категорию как в дизайне
+            Text(text = "Категория")
+            IconButton(
+                onClick = {
+                    showBottomSheet = true
+                },
+                modifier = Modifier
+                    .background(
+                        Black,
+                        shape = RoundedCornerShape(16.dp)
+                    )
+                    .size(48.dp)
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_down),
+                    contentDescription = stringResource(R.string.add),
+                    modifier = Modifier.size(24.dp)
+                )
+            } // Исправить на правельную категорию как в дизайне
 
             if (showBottomSheet) {
                 ModalBottomSheet(
@@ -663,12 +665,111 @@ fun CustomTimePicker(
     }
 }
 
+@Preview
 @Composable
 fun SheetContent() {
-    Column(modifier = Modifier
-        .fillMaxSize()
-        .background(Background)) {
-        Text(text = "SheetContent")
+
+//    val tagRadioOption = listOf("Личное", "Работы", "Бизнес", "Дом", "Другое")
+    val tagRadioOptions = listOf(
+        "Личное" to R.drawable.ic_lightblue_personal,
+        stringResource(R.string.work) to R.drawable.ic_light_purple,
+        "Бизнес" to R.drawable.ic_light_green,
+        "Дом" to R.drawable.ic_light_red,
+        "Другое" to R.drawable.ic_light_yellow
+    )
+    val (selectedOption, onOptionSelected) = remember { mutableStateOf(tagRadioOptions[0]) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .selectableGroup()
+            .padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 20.dp)
+            .background(Background)
+    ) {
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text(
+                text = "Выберите тег",
+                style = MaterialTheme.typography.titleLarge,
+                fontSize = 32.sp
+            )
+            IconButton(
+                onClick = { }, modifier = Modifier
+                    .size(48.dp)
+                    .background(
+                        color = lightGray, shape = RoundedCornerShape(16.dp)
+                    )
+            ) {
+                Image(
+                    painter = painterResource(
+                        R.drawable.ic_done_blue
+                    ),
+                    contentDescription = "Back",
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        tagRadioOptions.forEach { text ->
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 10.dp)
+                    .selectable(
+                        selected = (text == selectedOption),
+                        onClick = { onOptionSelected(text) },
+                        role = Role.RadioButton,
+                        indication = null,
+                        interactionSource = null,
+                    ),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Image(
+                        painter = painterResource(text.second),
+                        modifier = Modifier.size(14.dp),
+                        contentDescription = null
+                    )
+
+                    Spacer(modifier = Modifier.width(10.dp))
+
+                    Text(
+                        text = text.first,
+                        fontSize = 16.sp,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+
+                RadioButton(
+                    selected = (text == selectedOption),
+                    onClick = null,
+                    colors = RadioButtonDefaults.colors(
+                        selectedColor = BlueText,
+                        unselectedColor = lightGray,
+                    )
+                )
+            }
+
+
+            Row(
+                modifier = Modifier
+                    .height(1.dp)
+                    .fillMaxWidth()
+                    .background(lightGray)
+            ) { }
+        }
+
     }
     // доделать bottomSheet
 
