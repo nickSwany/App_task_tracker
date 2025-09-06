@@ -13,4 +13,8 @@ class MainInteractorImpl(private val repository: MainRepository) : MainInteracto
     override suspend fun deleteTask(task: Task) {
         return repository.deleteTask(task)
     }
+
+    override suspend fun approveTask(taskId: Long, isCompleted: Boolean) {
+        return repository.approveTask(taskId, isCompleted)
+    }
 }

@@ -2,8 +2,10 @@ package com.example.tasktracker.di
 
 import com.example.tasktracker.data.impl.MainRepositoryImpl
 import com.example.tasktracker.domain.api.interactor.CreateTaskInteractor
+import com.example.tasktracker.domain.api.interactor.EditTaskInteractor
 import com.example.tasktracker.domain.api.interactor.MainInteractor
 import com.example.tasktracker.domain.impl.CreateTaskInteractorImpl
+import com.example.tasktracker.domain.impl.EditTaskInteractorImpl
 import com.example.tasktracker.domain.impl.MainInteractorImpl
 import org.koin.dsl.module
 
@@ -16,5 +18,9 @@ val interactorModule = module {
 
     single<CreateTaskInteractor> {
         CreateTaskInteractorImpl(get())
+    }
+
+    single<EditTaskInteractor> {
+        EditTaskInteractorImpl(get())
     }
 }

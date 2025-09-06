@@ -23,4 +23,9 @@ class MainRepositoryImpl(
     override suspend fun deleteTask(task: Task) {
         return appDataBase.taskDao().delete(convertor.map(task))
     }
+
+    override suspend fun approveTask(task: Long, isCompleted: Boolean) {
+        return appDataBase.taskDao().updateIsCompleted(task, isCompleted)
+    }
+
 }

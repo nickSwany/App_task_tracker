@@ -29,8 +29,6 @@ data class TaskEntity(
     val categoryName: String,
     @ColumnInfo(name = "category_color")
     val categoryColor: String,
-    @ColumnInfo(name = "status")
-    val status: String,
     @ColumnInfo(name = "is_completed")
     val isCompleted: Boolean
 )

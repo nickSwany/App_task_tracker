@@ -11,6 +11,5 @@ data class Task(
     val address: String?,
     val categoryName: String?,
     val categoryColor: String?,
-    val status: String?,
-    val isCompleted: Boolean
+    var isCompleted: Boolean
 )
