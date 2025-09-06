@@ -7,4 +7,5 @@
     <string name="time">Время</string>
     <string name="duration">Продолжительность</string>
     <string name="task_title" translatable="false">Наименование задачи</string>
+    <string name="work">Работа</string>
 </resources>
